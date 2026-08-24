@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Adjuntar imágenes - Clínica de Imágenes</title>
+    <title>Completar datos - {{ paciente.nombre }} {{ paciente.apellido }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,7 +29,7 @@
             background: white;
             border-radius: 12px;
             padding: 2rem;
-            max-width: 560px;
+            max-width: 480px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .resumen {
@@ -39,29 +39,49 @@
             padding: 0.85rem 1rem;
             font-size: 0.85rem;
             color: #334155;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
         .resumen strong {
             color: #0f172a;
+        }
+        .aviso-pendientes {
+            background: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+        .mensajes {
+            list-style: none;
+            padding: 0;
+        }
+        .mensajes li {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
         }
         label {
             display: block;
             font-size: 0.85rem;
             color: #334155;
             margin-bottom: 0.25rem;
+            margin-top: 1rem;
         }
-        input[type="file"] {
+        label:first-of-type {
+            margin-top: 0;
+        }
+        input, select {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             box-sizing: border-box;
             font-family: inherit;
-        }
-        .ayuda {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
         }
         .errorlist {
             color: #dc2626;
@@ -70,16 +90,8 @@
             padding: 0;
             margin: 0.25rem 0 0;
         }
-        .imagenes-previas {
-            font-size: 0.8rem;
-            color: #334155;
-            margin: 1rem 0;
-        }
-        .imagenes-previas li {
-            margin-bottom: 0.25rem;
-        }
         button {
-            margin-top: 1.25rem;
+            margin-top: 1.5rem;
             width: 100%;
             padding: 0.6rem;
             background: #2563eb;
@@ -97,32 +109,46 @@
 <body>
 {% include 'includes/notificaciones.html' %}
     <div class="topbar">
-        <h1>Adjuntar imágenes</h1>
-        <a class="volver" href="{{ volver_url }}">&larr; Volver al listado</a>
+        <h1>Completar datos del paciente</h1>
+        <a class="volver" href="{% url 'dashboard' %}">&larr; Volver al panel</a>
     </div>
     <div class="card">
         <div class="resumen">
-            <strong>{{ cita.paciente.nombre }} {{ cita.paciente.apellido }}</strong> ({{ cita.paciente.dpi }})<br>
-            {% if edad is not None %}{{ edad }} años{% else %}Edad no registrada{% endif %}, {{ cita.paciente.get_sexo_display }}<br>
-            Estudio: {{ cita.tipo_estudio.nombre }} — {{ cita.fecha }} {{ cita.hora|time:'H:i' }}
+            <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong><br>
+            DPI: {{ paciente.dpi }}
         </div>
 
-        {% if orden.imagenes.all %}
-            <ul class="imagenes-previas">
-                {% for img in orden.imagenes.all %}
-                    <li>Ya subida: <a href="{{ img.archivo.url }}" target="_blank">{{ img.archivo.name }}</a></li>
+        {% if messages %}
+            <ul class="mensajes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data">
+        {% if pendientes %}
+            <div class="aviso-pendientes">
+                Todavía falta: {{ pendientes|join:", " }}.
+            </div>
+        {% endif %}
+
+        <form method="post">
             {% csrf_token %}
             {{ form.non_field_errors }}
-            <label for="{{ form.imagenes.id_for_label }}">{{ form.imagenes.label }}</label>
-            {{ form.imagenes }}
-            <p class="ayuda">{{ form.imagenes.help_text }}</p>
-            {{ form.imagenes.errors }}
-            <button type="submit">Adjuntar y enviar a radióloga</button>
+
+            <label for="{{ form.sexo.id_for_label }}">Sexo</label>
+            {{ form.sexo }}
+            {{ form.sexo.errors }}
+
+            <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+            {{ form.telefono }}
+            {{ form.telefono.errors }}
+
+            <label for="{{ form.fecha_nacimiento.id_for_label }}">Fecha de nacimiento</label>
+            {{ form.fecha_nacimiento }}
+            {{ form.fecha_nacimiento.errors }}
+
+            <button type="submit">Guardar datos</button>
         </form>
     </div>
 </body>

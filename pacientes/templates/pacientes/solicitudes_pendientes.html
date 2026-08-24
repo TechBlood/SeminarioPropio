@@ -1,50 +1,121 @@
-{% extends 'base.html' %}
-
-{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitudes de citas - Clínica de Imágenes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 2rem;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            color: #0f172a;
+            font-size: 1.3rem;
+        }
+        a.volver {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .solicitud {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .solicitud .titulo {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+        }
+        .solicitud .titulo strong {
+            color: #0f172a;
+            font-size: 1rem;
+        }
+        .solicitud .convenio {
+            background: #ddd6fe;
+            color: #4c1d95;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+        }
+        .solicitud .datos {
+            font-size: 0.85rem;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+        .solicitud .sugerido {
+            font-size: 0.85rem;
+            color: #0f172a;
+            background: #eff6ff;
+            border-left: 3px solid #2563eb;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .solicitud .notas {
+            font-size: 0.85rem;
+            color: #334155;
+            background: #f8fafc;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .btn-revisar {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 6px;
+        }
+        .vacio {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
 {% include 'includes/notificaciones.html' %}
+    <div class="topbar">
+        <h1>Solicitudes de citas</h1>
+        <a class="volver" href="{% url 'dashboard' %}">&larr; Volver al panel</a>
+    </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 m-0 fw-bold">Solicitudes de Citas Pendientes</h2>
-    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Volver al panel
-    </a>
-</div>
-
-{% if citas %}
-    <div class="row">
+    {% if citas %}
         {% for cita in citas %}
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="card-title m-0 fw-bold text-dark">
-                                {{ cita.paciente.nombre }} {{ cita.paciente.apellido }}
-                            </h5>
-                            <span class="badge bg-secondary">{{ cita.get_convenio_display }}</span>
-                        </div>
-                        <p class="card-text text-muted small mb-2">
-                            DPI: {{ cita.paciente.dpi }} | {{ cita.paciente.get_sexo_display }} | Tel: {{ cita.paciente.telefono|default:"—" }}<br>
-                            <strong>Estudio:</strong> {{ cita.tipo_estudio.nombre }}
-                        </p>
-                        <div class="p-2 bg-light border-start border-3 border-primary rounded mb-2 small">
-                            Solicitado por recepción: <strong>{{ cita.fecha_sugerida }} — {{ cita.hora_sugerida|time:'H:i' }}</strong>
-                        </div>
-                        {% if cita.notas %}
-                            <p class="card-text text-secondary small bg-body-tertiary p-2 rounded mb-3">
-                                <em>{{ cita.notas }}</em>
-                            </p>
-                        {% endif %}
-                        <a href="{% url 'revisar_solicitud' cita_id=cita.id %}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-search me-1"></i> Revisar Solicitud
-                        </a>
-                    </div>
+            <div class="solicitud">
+                <div class="titulo">
+                    <strong>{{ cita.paciente.nombre }} {{ cita.paciente.apellido }}</strong>
+                    <span class="convenio">{{ cita.get_convenio_display }}</span>
                 </div>
+                <div class="datos">
+                    DPI: {{ cita.paciente.dpi }} —
+                    {{ cita.paciente.get_sexo_display }} —
+                    Tel: {{ cita.paciente.telefono|default:"—" }} —
+                    Estudio: {{ cita.tipo_estudio.nombre }}
+                </div>
+                <div class="sugerido">
+                    Solicitado por recepción: <strong>{{ cita.fecha_sugerida }} — {{ cita.hora_sugerida|time:'H:i' }}</strong>
+                </div>
+                {% if cita.notas %}
+                    <div class="notas">{{ cita.notas }}</div>
+                {% endif %}
+                <a class="btn-revisar" href="{% url 'revisar_solicitud' cita_id=cita.id %}">Revisar</a>
             </div>
         {% endfor %}
-    </div>
-{% else %}
-    <div class="alert alert-info shadow-sm">
-        <i class="bi bi-info-circle me-2"></i> No hay solicitudes de citas pendientes de confirmación.
-    </div>
-{% endif %}
-{% endblock %}
+    {% else %}
+        <p class="vacio">No hay solicitudes de citas pendientes de confirmación.</p>
+    {% endif %}
+</body>
+</html>

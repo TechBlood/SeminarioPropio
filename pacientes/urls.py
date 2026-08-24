@@ -5,7 +5,22 @@ from .models import Cita
 
 urlpatterns = [
     path('estudios/nuevo/', views.crear_estudio, name='crear_estudio'),
+    path('estudios/', views.lista_estudios, name='lista_estudios'),
+    path('estudios/<int:estudio_id>/editar/', views.editar_estudio, name='editar_estudio'),
     path('pacientes/buscar-por-dpi/', views.buscar_paciente_por_dpi, name='buscar_paciente_por_dpi'),
+    path(
+        'pacientes/completar-datos/<int:paciente_id>/',
+        views.completar_datos_paciente,
+        name='completar_datos_paciente',
+    ),
+    path('estudios/radiologos-por-estudio/', views.radiologos_por_estudio, name='radiologos_por_estudio'),
+    path('pacientes/historial/', views.historial_pacientes, name='historial_pacientes'),
+    path('pacientes/historial/<int:paciente_id>/', views.historial_paciente, name='historial_paciente'),
+    path(
+        'pacientes/historial/estudio/<int:cita_id>/',
+        views.ver_estudio_historial,
+        name='ver_estudio_historial',
+    ),
     path(
         'citas/calendario/coex/',
         views.seleccionar_horario,
@@ -95,5 +110,39 @@ urlpatterns = [
         'notificaciones/marcar-todas-leidas/',
         views.marcar_notificaciones_leidas,
         name='marcar_notificaciones_leidas',
+    ),
+    path(
+        'reportes/coex/',
+        views.lista_reportes_diarios,
+        {'convenio': Cita.CONVENIO_COEX},
+        name='lista_reportes_diarios_coex',
+    ),
+    path(
+        'reportes/privado/',
+        views.lista_reportes_diarios,
+        {'convenio': Cita.CONVENIO_PRIVADO},
+        name='lista_reportes_diarios_privado',
+    ),
+    path(
+        'reportes/emergencia-igss/',
+        views.lista_reportes_diarios,
+        {'convenio': Cita.CONVENIO_EMERGENCIA_IGSS},
+        name='lista_reportes_diarios_emergencia_igss',
+    ),
+    path('reportes/<str:convenio>/<str:fecha>/', views.ver_reporte_diario, name='ver_reporte_diario'),
+    path(
+        'reportes/<str:convenio>/<str:fecha>/enviar/',
+        views.enviar_reporte_diario,
+        name='enviar_reporte_diario',
+    ),
+    path(
+        'reportes/<str:convenio>/<str:fecha>/pdf/',
+        views.descargar_reporte_pdf,
+        name='descargar_reporte_pdf',
+    ),
+    path(
+        'reportes/<str:convenio>/<str:fecha>/xlsx/',
+        views.descargar_reporte_xlsx,
+        name='descargar_reporte_xlsx',
     ),
 ]

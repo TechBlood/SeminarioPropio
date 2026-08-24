@@ -81,6 +81,13 @@
             background: #e2e8f0;
             color: #94a3b8;
         }
+        a.slot.ocupado {
+            background: #fecaca;
+            color: #7f1d1d;
+        }
+        a.slot.ocupado:hover {
+            background: #fca5a5;
+        }
         .leyenda {
             margin-top: 1rem;
             font-size: 0.8rem;
@@ -110,50 +117,6 @@
     </style>
 </head>
 <body>
-    <!-- Input de Búsqueda Rápida -->
-<div class="row mb-3">
-    <div class="col-md-6 col-lg-4">
-        <div class="input-group">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-            <input type="text" id="filtroPacientesCoex" class="form-control" placeholder="Filtrar por nombre, DPI o estado..." autocomplete="off">
-        </div>
-    </div>
-</div>
-
-<!-- Tabla de Pacientes en COEX -->
-<div class="table-responsive">
-    <table class="table table-hover align-middle" id="tablaCoex">
-        <thead class="table-dark">
-            <tr>
-                <th>Paciente</th>
-                <th>DPI</th>
-                <th>Estudio / Cita</th>
-                <th>Estado</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in pacientes_coex %}
-            <tr class="fila-paciente">
-                <td class="col-nombre">{{ item.paciente.nombre }} {{ item.paciente.apellido }}</td>
-                <td class="col-dpi">{{ item.paciente.dpi }}</td>
-                <td>{{ item.tipo_estudio.nombre }}</td>
-                <td>
-                    <span class="badge bg-primary">{{ item.get_estado_display|default:item.estado }}</span>
-                </td>
-                <td>
-                    <!-- Acciones normales de tu flujo COEX -->
-                    <a href="#" class="btn btn-sm btn-success">Atender</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted py-3">No hay pacientes registrados en COEX hoy.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
 {% include 'includes/notificaciones.html' %}
     <div class="topbar">
         <h1>Calendario — {{ convenio_nombre }}</h1>
@@ -194,10 +157,16 @@
                                 <span class="pasado">Pasado</span>
                             {% elif celda.fuera_rango %}
                                 <span class="pasado">No disponible</span>
+                            {% elif celda.ocupado or celda.asignado %}
+                                {% if reagendar_cita %}
+                                    <a class="slot ocupado" href="{% url reagendar_url_name cita_id=reagendar_cita.id %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|time:'H:i' }}" title="Ya hay una cita que ocupa este horario. Se puede agendar igual solo si es una emergencia — se pedirá confirmación.">Ocupado</a>
+                                {% else %}
+                                    <a class="slot ocupado" href="{% url agendar_url_name %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|time:'H:i' }}" title="Ya hay una cita que ocupa este horario. Se puede agendar igual solo si es una emergencia — se pedirá confirmación.">Ocupado</a>
+                                {% endif %}
                             {% elif reagendar_cita %}
-                                <a class="slot" href="{% url reagendar_url_name cita_id=reagendar_cita.id %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|stringformat:'02d' }}:00">{{ celda.cantidad }} cita{{ celda.cantidad|pluralize }}</a>
+                                <a class="slot" href="{% url reagendar_url_name cita_id=reagendar_cita.id %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|time:'H:i' }}">Agendar</a>
                             {% else %}
-                                <a class="slot" href="{% url agendar_url_name %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|stringformat:'02d' }}:00">{{ celda.cantidad }} cita{{ celda.cantidad|pluralize }}</a>
+                                <a class="slot" href="{% url agendar_url_name %}?fecha={{ celda.dia|date:'Y-m-d' }}&hora={{ celda.hora|time:'H:i' }}">Agendar</a>
                             {% endif %}
                         </td>
                     {% endfor %}
@@ -206,32 +175,9 @@
         </table>
     </div>
     <p class="leyenda">
-        <span style="background:#bfdbfe;"></span> Disponible — el número es solo referencia, no hay límite de cupo
+        <span style="background:#bfdbfe;"></span> Disponible
+        &nbsp;&nbsp;
+        <span style="background:#fecaca;"></span> Ocupado — ya hay una cita en ese horario; se puede agendar igual solo como emergencia (máximo {{ maximo_emergencias_por_dia }} por día), con aviso a la radióloga
     </p>
 </body>
 </html>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const inputFiltro = document.getElementById('filtroPacientesCoex');
-    const filasTabla = document.querySelectorAll('#tablaCoex tbody .fila-paciente');
-
-    if (inputFiltro) {
-        inputFiltro.addEventListener('input', function() {
-            const termino = inputFiltro.value.toLowerCase().trim();
-
-            filasTabla.forEach(fila => {
-                // Obtenemos el texto completo de la fila para comparar
-                const textoFila = fila.textContent.toLowerCase();
-
-                // Muestra u oculta según si coincide con el término
-                if (textoFila.includes(termino)) {
-                    fila.style.display = '';
-                } else {
-                    fila.style.display = 'none';
-                }
-            });
-        });
-    }
-});
-</script>
